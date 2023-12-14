@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Image URLs</title>
+</head>
+<body>
+    <img src="download.jfif" alt="Image 1">
+    <img src="download (1).jfif" alt="Image 2">
+    <!-- <img src="image3.jpg" alt="Image 3"> -->
+    
+    <script>
+        function updateImageURLs() {
+            const images = document.querySelectorAll("img"); // Select all image elements
+            const newImageUrl = "https://www.shutterstock.com/image-vector/concept-computer-programming-developing-software-game-2149658841"; // New image URL
+            
+            images.forEach(image => {
+                image.src = newImageUrl;
+            });
+        }
+
+        // Call the updateImageURLs function when the page loads
+        window.onload = updateImageURLs;
+    </script>
+</body>
+</html>

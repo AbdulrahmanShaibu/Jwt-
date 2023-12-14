@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot</title>
+    <h4>Please ask questions about software/hardware devices</h4>
+</head>
+<body>
+    
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-image: url("your-background-image-url.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .chat-container {
+        max-width: 400px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-display {
+        min-height: 200px;
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 10px;
+        background-color: #f5f5f5;
+    }
+
+    .chat-input {
+        display: flex;
+        align-items: center;
+        padding: 5px;
+        background-color: #fff;
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-right: 5px;
+    }
+
+    .chat-input button {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .chat-input button:hover {
+        background-color: #0056b3;
+    }
+
+    .chat-bot,
+    .user {
+        padding: 8px;
+        border-radius: 5px;
+        margin: 5px 0;
+    }
+
+    .chat-bot {
+        background-color: #eaeaea;
+        text-align: left;
+    }
+
+    .user {
+        background-color: #007bff;
+        color: #fff;
+        text-align: right;
+    }
+
+    h4 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #007bff;
+    }
+      /* Additional CSS for chat history section */
+      .chat-history-container {
+        display: none;
+        margin-top: 20px;
+    }
+
+    .chat-history {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    .view-history-button {
+        margin-top: 10px;
+        cursor: pointer;
+        color: #007bff;
+    }
+    .chat-history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+  }
+
+  .edit-icon,
+  .delete-icon {
+      cursor: pointer;
+      color: #007bff;
+      margin-left: 10px;
+  }
+  
+  .timestamp {
+    font-size: 12px;
+    color: #999;
+    margin-left: 10px;
+}
+
+.clear-history-button {
+    cursor: pointer;
+    color: #007bff;
+    margin-top: 10px;
+}
+/* CSS for displaying images in chat */
+.image-message img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 5px;
+}
+    </style>
+
+    <script>
+       // Array to store chat history
+       let chatHistoryArray = [];
+
+function sendMessage() {
+  const userInput = document.getElementById('user-input').value;
+  if (userInput.trim() !== '') {
+    displayMessage(userInput, 'user');
+    // Call the function to get the bot's response
+    getBotResponse(userInput);
+    document.getElementById('user-input').value = '';
+  }
+}
+
+function displayMessage(message, sender) {
+
+    // Update chat history array
+    chatHistoryArray.push({ message, sender });
+
+  const chatDisplay = document.getElementById('chat-display');
+  const messageElement = document.createElement('div');
+  messageElement.classList.add('message', sender === 'user' ? 'user' : 'chat-bot');
+  messageElement.innerText = message;
+
+    // Check if the message is an image
+    if (message.startsWith('image:')) {
+      const imageUrl = message.substring(6); // Remove the 'image:' prefix
+      const imageElement = document.createElement('img');
+      imageElement.src = imageUrl;
+      const imageMessage = document.createElement('div');
+      imageMessage.classList.add('image-message');
+      imageMessage.appendChild(imageElement);
+      messageElement.appendChild(imageMessage);
+  } else {
+      messageElement.innerText = message;
+  }
+
+  // Add timestamp to the message
+  const timestampElement = document.createElement('span');
+  timestampElement.classList.add('timestamp');
+  const timestamp = new Date().toLocaleString();
+  timestampElement.innerText = timestamp;
+  messageElement.appendChild(timestampElement);
+
+  chatDisplay.appendChild(messageElement);
+  chatDisplay.scrollTop = chatDisplay.scrollHeight;
+}
+
+
+function toggleChatHistory() {
+  const chatHistoryContainer = document.getElementById('chat-history-container');
+  const viewableChatHistory = document.getElementById('viewable-chat-history');
+
+  if (chatHistoryContainer.style.display === 'none') {
+      // Show chat history container
+      chatHistoryContainer.style.display = 'block';
+
+      // Clear the previous chat history
+      viewableChatHistory.innerHTML = '';
+
+      // Populate the chat history container with the saved chat history
+      for (const chat of chatHistoryArray) {
+          const messageElement = document.createElement('div');
+          messageElement.classList.add('message', chat.sender === 'user' ? 'user' : 'chat-bot');
+          messageElement.innerText = chat.message;
+          viewableChatHistory.appendChild(messageElement);
+      }
+      // Update the viewable chat history
+      updateViewableChatHistory();
+
+  } else {
+      // Hide chat history container
+      chatHistoryContainer.style.display = 'none';
+  }
+}
+
+
+function updateViewableChatHistory() {
+  const viewableChatHistory = document.getElementById('viewable-chat-history');
+
+  // Clear the previous chat history
+  viewableChatHistory.innerHTML = '';
+
+  // Populate the chat history container with the saved chat history
+  for (let i = 0; i < chatHistoryArray.length; i++) {
+      const chat = chatHistoryArray[i];
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', chat.sender === 'user' ? 'user' : 'chat-bot');
+      messageElement.innerText = chat.message;
+
+      // Create edit and delete icons
+      const editIcon = document.createElement('span');
+      editIcon.classList.add('edit-icon');
+      editIcon.innerHTML = '&#9998;';
+      editIcon.setAttribute('data-index', i);
+      editIcon.addEventListener('click', editMessage);
+
+      const deleteIcon = document.createElement('span');
+      deleteIcon.classList.add('delete-icon');
+      deleteIcon.innerHTML = '&#128465;';
+      deleteIcon.setAttribute('data-index', i);
+      deleteIcon.addEventListener('click', deleteMessage);
+
+      // Append edit and delete icons to the message element
+      messageElement.appendChild(editIcon);
+      messageElement.appendChild(deleteIcon);
+
+      viewableChatHistory.appendChild(messageElement);
+  }
+   // Auto-scroll to the latest message
+   viewableChatHistory.scrollTop = viewableChatHistory.scrollHeight;
+}
+
+function editMessage(event) {
+  const index = event.target.getAttribute('data-index');
+  const messageToEdit = chatHistoryArray[index].message;
+  const editedMessage = prompt('Edit the message:', messageToEdit);
+
+  if (editedMessage !== null) {
+      chatHistoryArray[index].message = editedMessage;
+      updateViewableChatHistory();
+  }
+}
+
+function deleteMessage(event) {
+  const index = event.target.getAttribute('data-index');
+  chatHistoryArray.splice(index, 1);
+  updateViewableChatHistory();
+}
+
+function clearChatHistory() {
+  // Clear the chat history array and update the viewable chat history
+  chatHistoryArray = [];
+  updateViewableChatHistory();
+}
+
+
+
+function getBotResponse(userInput) {
+    userInput = userInput.toLowerCase().trim();
+  // Simple predefined bot responses
+  const botResponses = {
+    'hi': 'Hello there!',
+    'i have some questions that I want to ask you' :'Ok fell free to ask...',
+    'who are you?': "I'm just a chatbot created by Abdulrahman Shaibu Kheir , can I help you!",
+    'how are you':"I am just a chatbot responsible for computer responses about hardware and software devices uses.",
+    'bye': 'Goodbye!',
+    'yes':'feel free...',
+    'thanks':'welcome again, please feel free to ask any other questions...',
+    'what is ram?': "RAM stands for Random Access Memory. It is a type of computer memory that allows data to be accessed randomly, which means any piece of data can be accessed directly without going through the entire memory. RAM is volatile, meaning its contents are erased when the computer is powered off.",
+    'what is cpu?': 'A CPU, or Central Processing Unit, is the primary component of a computer that performs most of the processing and calculations. It interprets and executes instructions from computer programs, making it the "brain" of the computer.',
+    'what is motherboard?': 'A motherboard is the main circuit board of a computer. It serves as a platform for connecting various hardware components, such as the CPU, RAM, storage devices, and other peripherals.',
+    'what is gpu?': 'A GPU, or Graphics Processing Unit, is a specialized processor designed to handle graphics-related tasks. It accelerates image and video processing and is essential for smooth gaming and graphics-intensive applications.',
+    'what is hard drive?': 'A hard drive is a storage device used to store and retrieve digital data on a long-term basis. It uses magnetic storage to store data on spinning disks called platters.',
+    'what is ssd?': 'SSD stands for Solid State Drive. It is a storage device that uses flash memory to store data, similar to USB drives. SSDs offer faster data access times and are more durable than traditional hard drives.',
+    'what is graphics card?': 'A graphics card, also known as a video card or GPU, is a component responsible for rendering images, videos, and graphics on a computer monitor. It is crucial for gaming and multimedia tasks.',
+    'what is power supply unit?': 'A power supply unit is a hardware component that provides power to all the other components in a computer. It converts the electricity from the outlet into the appropriate voltage needed by the computer.',
+    'what is monitor?': 'A monitor is an output device that displays visual information generated by the computer. It allows users to interact with the computer graphical interface.',
+    'what is keyboard?': 'A keyboard is an input device used to enter text, commands, and other characters into a computer. It is one of the primary ways users interact with the computer.',
+    'what is mouse?': 'A mouse is an input device that allows users to control the cursor on the computer screen. It is used for selecting, clicking, and interacting with graphical elements.',
+    'what is printer?': 'A printer is an output device that produces hard copies of digital documents and images on paper or other materials.',
+    'what is scanner?': 'A scanner is an input device used to convert physical documents or images into digital format, which can be stored and manipulated on a computer.',
+    'what is an operating system?': 'An operating system is software that manages computer hardware and provides services for computer programs. It acts as an intermediary between the user and the computer hardware.',
+    'what is application software?': 'Application software refers to programs designed to perform specific tasks for users. Examples include word processors, web browsers, and image editing software.',
+    'what is system software?': 'System software is a type of computer software that provides a platform for application software to run. It includes the operating system, device drivers, and utility programs.',
+    'what is browser?': 'A browser is a software application used to access and view websites and web pages on the internet.',
+    
+    'test':'test test test test test testtest test.',
+
+    'what is firewall?': 'A firewall is a security system that monitors and controls incoming and outgoing network traffic, protecting a computer or network from unauthorized access and potential threats.',
+    'what is an antivirus?': 'An antivirus is software designed to detect, prevent, and remove malicious software (malware) from a computer, such as viruses, worms, and Trojans.',
+    'what is router?': 'A router is a networking device that forwards data packets between computer networks. It serves as a gateway between the local network and the internet.',
+    'what is modem?': 'A modem is a device that modulates and demodulates digital data to allow computers to connect to the internet over telephone lines or cable systems.',
+    'what is webcam?': 'A webcam is a camera attached to a computer that captures video and audio, allowing users to conduct video conferences and record videos.',
+    'what is microphone?': 'A microphone is an input device that converts sound waves into electrical signals, enabling users to record audio or communicate with others in voice chats.',
+    'what is speaker?': 'A speaker is an output device that converts electrical signals into audio sounds, allowing users to hear sound from a computer or other audio sources.',
+    'tell me about virtual reality': 'Virtual reality is a simulated experience that can be similar to or completely different from the real world. It is typically created using computer technology and is experienced through specialized VR headsets.',
+    'what is augmented reality ?': 'Augmented reality is an interactive experience where computer-generated information is overlaid onto the real-world environment, enhancing the user perception of reality.',
+    'what is a cd-rom?': 'A CD-ROM (Compact Disc Read-Only Memory) is a type of optical disc that can store large amounts of data, such as software applications, music, and videos, which can be read but not written to.',
+    'what is dvd?': 'A DVD (Digital Versatile Disc) is an optical disc format used for storing and playing high-quality video and audio content. DVDs can also store data and software applications.',
+    'what is a blu-ray disc?': 'A Blu-ray disc is an optical disc format that offers higher storage capacity and better quality for high-definition video and audio compared to DVDs.',
+    'what is touchpad?': 'A touchpad is an input device commonly found on laptops, which allows users to control the cursor by moving their fingers on the touch-sensitive surface.',
+    'what is a graphics tablet?': 'A graphics tablet, also known as a digitizer or drawing tablet, is an input device that allows artists and designers to draw directly on the tablet surface, which is then reflected on the computer screen.',
+    'what is a gaming console?': 'A gaming console is a specialized computer system designed primarily for playing video games. Examples include the PlayStation, Xbox, and Nintendo Switch.',
+    'what is a wearable device?': 'A wearable device is a technology worn on the body, such as smartwatches, fitness trackers, and augmented reality glasses, designed to enhance daily activities or monitor health and fitness.',
+    'what is a network switch?': 'A network switch is a networking device that connects multiple devices within a local area network (LAN) and directs data traffic between them.',
+    'what is cloud storage?': 'Cloud storage is a service that allows users to store and access data over the internet on remote servers, providing convenient and scalable storage solutions.',
+    'what is a 3d printer?': 'A 3D printer is a device that can create three-dimensional objects by building them layer by layer using various materials, such as plastics, metals, or resins.',
+    'what is a biometric authentication device?': 'A biometric authentication device uses unique physical or behavioral characteristics, such as fingerprints or facial recognition, to verify and grant access to users.',
+    'what is a smart home device?': 'A smart home device is a connected device that can be controlled remotely or automated to perform tasks in a smart home ecosystem, such as smart speakers, smart thermostats, and smart lighting.',
+    'what is drone?': 'A drone is an unmanned aerial vehicle (UAV) that can be remotely controlled or operated autonomously. Drones are used for various purposes, including aerial photography, surveillance, and package delivery.',
+    'teach me about virtual assistant ': 'A virtual assistant is an AI-powered software program designed to perform tasks or answer questions for users, such as Apple',
+    'what is barcode scanner?': 'A barcode scanner is a handheld or fixed device that reads barcodes, converting the information into digital data for inventory management and retail applications.',
+    'what is gps device?': 'A GPS device, or Global Positioning System device, uses satellite signals to determine the precise location of a receiver, allowing for accurate navigation and location tracking.',
+    'what is a digital camera?': 'A digital camera captures and stores photographs and videos digitally, eliminating the need for traditional film processing. Images can be instantly viewed and transferred to a computer or other devices.',
+
+    'what is the weather like today?' : ' I am sorry, I do not have access to real-time data. You can check a weather website or app for the latest information.',
+    'tell me a joke.' : 'Why do not scientists trust atoms? Because they make up everything!',
+    'what is the meaning of life?' : 'That is a deep philosophical question. The meaning of life can vary from person to person. Some find meaning in relationships, others in pursuing their passions.',
+    'what is your favorite color?' : 'I do not have personal preferences, but I can help you with any questions or tasks you have.',
+    'what is the latest news?' : 'I can not provide real-time news updates, but you can check a news website or app for the latest headlines.',
+    'can you translate "hello" into Spanish?' : '"Hello" in Spanish is "Hola."',
+    'tell me a fun fact.' : 'Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly edible.',
+    'how does Wi-Fi work?' : 'Wi-Fi uses radio waves to transmit data between devices and a router. It allows wireless internet connections within a certain range of the router.',
+    'what is the best way to relax and reduce stress?' : 'Relaxation techniques vary from person to person but may include meditation, deep breathing exercises, or engaging in hobbies you enjoy.',
+    'how do you work?' : 'I am using natural language processing (NLP) and machine learning algorithms to understand and respond to user input. They can be rule-based (programmed with predefined responses) or AI-driven (learning from data and improving over time).',
+    'how do you learn?' : 'AI-driven chatbots learn from user interactions and can improve their responses over time through machine learning techniques.',
+    'how can I create you?' : 'Creating a chatbot involves programming and, for AI-driven bots, training with relevant data. There are various chatbot development platforms and tools available to help.',
+    'will you become more advanced?' : 'Yes, chatbot technology is continuously evolving with advancements in AI and NLP, making them more capable and sophisticated.',
+    'what is the square root of 144?' : 'The square root of 144 is 12.',
+    'habari!' : 'Habari! Vipi leo? (Hello! How are you today?)',
+    'nimechoka sana leo' : 'Pole sana! (I am sorry to hear that!) Unapanga kufanya nini baada ya kazi? (What are you planning to do after work?)',
+    'nataka kujifunza kucheza dansi.' : 'Hiyo ni wazo zuri sana! Ungependa kujifunza aina gani ya densi? (That is a great idea! What type of dance would you like to learn?)',
+    'nataka kujaribu chakula cha kitanzania leo' : 'Hiyo ni wazo zuri! Ungependa kujaribu nini? (That is a good idea! What would you like to try?)',
+    'hebu nielezee hadithi ya kuchekesha.' : 'Kuna mzee mmoja aliingia duka la vitabu na kumuuliza muuzaji, "Una kitabu cha jinsi ya kusahau?" Muuzaji akamjibu, "Ndio, tuna kitabu hicho, lakini kinauzwa kiko wapi?" (There was an old man who walked into a bookstore and asked the cashier, "Do you have a book on how to forget?" The cashier replied, "Yes, we do have that book, but where is it sold?")',
+    'hebu nielezee hadithi nyingine ya kuchekesha.' : 'Kuna mwanaume mmoja alienda dukani kununua kofia. Muuzaji akamuuliza, "Ungependa kofia ya aina gani?" Yule mwanaume akasema, "Nataka kofia ya kuendesha gari." (There was a man who went to a store to buy a hat. The salesperson asked him, "What type of hat would you like?" The man said, "I want a hat for driving.")',
+    'do you know how to speak swahili?' : 'Yes, as an AI I am designed to interact with human like responses in any language that I have been trained. Simply I can',
+    'ok let us start' : 'please say anything you feel....',
+    'kwaheri' : 'ahsante sana',
+    'let us now use Swahili language' : 'Ok, as an AI I am designed to interact with human like responses in any language that I have been trained I can do so'
+    
+    // Add more predefined responses as needed
+  };
+
+  userInput = userInput.toLowerCase().trim();
+
+  // Check if the bot has a response for the user's input
+  if (botResponses.hasOwnProperty(userInput)) {
+    displayMessage(botResponses[userInput], 'chat-bot');
+  } else  if (userInput===('display developer image who created you')) {
+    const imageUrl='https://i.ibb.co/xCzQzgN/abdurahman.jpg';
+    // Respond with an image URL
+
+    displayMessage(`image:${imageUrl}`, 'chat-bot');
+}else
+  {
+    displayMessage("I'm sorry, As I am free chatbot created by Abdulrahman Shaibu I don't have ability to process what I have not been trained. Do you have any other questions to ask?", 'chat-bot');
+  }
+}
+
+    </script>
+
+    <div class="chat-container">
+        <div class="chat-display" id="chat-display">
+          <div class="chat-bot">Hello! How can I assist you?</div>
+        </div>
+        <div class="chat-input">
+          <input type="text" id="user-input" placeholder="Example: what is printer? etc...">
+          <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <!-- Button to view chat history -->
+        <div class="view-history-button" onclick="toggleChatHistory()">View History</div>
+        <!-- Chat history container -->
+        <div class="chat-history-container" id="chat-history-container">
+            <h2>Chat History</h2>
+            <div class="chat-history" id="viewable-chat-history">
+                <!-- Chat history will be displayed here when the button is clicked -->
+            </div>
+             <!-- Clear chat history button -->
+             <div class="clear-history-button" onclick="clearChatHistory()">Clear Chat History</div>
+        </div>
+    </div>
+</body>
+</html>
